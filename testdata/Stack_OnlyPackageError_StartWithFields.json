@@ -1,0 +1,17 @@
+[
+  {
+    "message": "3"
+  },
+  {
+    "fields": {
+      "f1": "v1"
+    },
+    "message": "2"
+  },
+  {
+    "fields": {
+      "f1": "v1"
+    },
+    "message": "1"
+  }
+]

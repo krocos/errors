@@ -7,38 +7,54 @@ const (
 	fields  = "fields"
 )
 
+// Error contains current and previous possible errors.
 type Error struct {
 	msg    string
 	fields Fields
 	prev   error
 }
 
-type Fields map[string]interface{}
-
 func (err Error) Error() string {
 	return err.msg
 }
 
+// Fields is the alias for map[string]interface{}.
+type Fields map[string]interface{}
+
+// New creates new error.
 func New(msg string) error {
 	return &Error{msg: msg}
 }
 
+// NewWithFields creates new error with contextual fields.
 func NewWithFields(msg string, fields Fields) error {
 	return &Error{msg: msg, fields: fields}
 }
 
+// Wrap wraps previous error into a new one with explanatory message.
 func Wrap(err error, msg string) error {
+	if err == nil {
+		return nil
+	}
+
 	return &Error{msg: msg, prev: err}
 }
 
+// WrapWithFields wraps previous error into a new one with explanatory message and with contextual fields.
 func WrapWithFields(err error, msg string, fields Fields) error {
+	if err == nil {
+		return nil
+	}
+
 	return &Error{msg: msg, fields: fields, prev: err}
 }
 
+// Stack returns a stack of errors in sequential order.
 func Stack(err error) []Fields {
 	return stack(err, make([]Fields, 0))
 }
 
+// JsonStack returns a json-encoded stack of errors.
 func JsonStack(err error) []byte {
 	b, _ := json.Marshal(Stack(err))
 	return b
