@@ -10,7 +10,7 @@ const (
 // Error contains current and previous possible errors.
 type Error struct {
 	msg    string
-	fields Fields
+	fields map[string]interface{}
 	prev   error
 }
 
@@ -18,16 +18,13 @@ func (err Error) Error() string {
 	return err.msg
 }
 
-// Fields is the alias for map[string]interface{}.
-type Fields map[string]interface{}
-
 // New creates new error.
 func New(msg string) error {
 	return &Error{msg: msg}
 }
 
 // NewWithFields creates new error with contextual fields.
-func NewWithFields(msg string, fields Fields) error {
+func NewWithFields(msg string, fields map[string]interface{}) error {
 	return &Error{msg: msg, fields: fields}
 }
 
@@ -41,7 +38,7 @@ func Wrap(err error, msg string) error {
 }
 
 // WrapWithFields wraps previous error into a new one with explanatory message and with contextual fields.
-func WrapWithFields(err error, msg string, fields Fields) error {
+func WrapWithFields(err error, msg string, fields map[string]interface{}) error {
 	if err == nil {
 		return nil
 	}
@@ -50,8 +47,8 @@ func WrapWithFields(err error, msg string, fields Fields) error {
 }
 
 // Stack returns a stack of errors in sequential order.
-func Stack(err error) []Fields {
-	return stack(err, make([]Fields, 0))
+func Stack(err error) []map[string]interface{} {
+	return stack(err, make([]map[string]interface{}, 0))
 }
 
 // JsonStack returns a json-encoded stack of errors.
@@ -60,12 +57,50 @@ func JsonStack(err error) []byte {
 	return b
 }
 
-func stack(err error, s []Fields) []Fields {
+// Restore restores an error from a result returned by Stack func.
+func Restore(stack []map[string]interface{}) error {
+
+	var err error
+
+	for i := len(stack) - 1; i >= 0; i-- {
+
+		e := &Error{}
+
+		if msg, ok := stack[i][message]; ok {
+			if s, ok := msg.(string); ok {
+				e.msg = s
+			}
+		}
+
+		if fields, ok := stack[i][fields]; ok {
+			if f, ok := fields.(map[string]interface{}); ok {
+				e.fields = f
+			}
+		}
+
+		if err != nil {
+			e.prev = err
+		}
+
+		err = e
+	}
+
+	return err
+}
+
+// RestoreRaw restores an error from a result returned by JsonStack func.
+func RestoreRaw(stack []byte) error {
+	s := make([]map[string]interface{}, 0)
+	_ = json.Unmarshal(stack, &s)
+	return Restore(s)
+}
+
+func stack(err error, s []map[string]interface{}) []map[string]interface{} {
 	if err == nil {
 		return s
 	}
 
-	item := make(Fields)
+	item := make(map[string]interface{})
 
 	switch e := err.(type) {
 	case *Error:
