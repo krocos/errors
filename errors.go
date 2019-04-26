@@ -7,6 +7,9 @@ const (
 	fields  = "fields"
 )
 
+// Fields represents just an alias for a more complicated on reading map[string]interface{}.
+type Fields map[string]interface{}
+
 // Error contains current and previous possible errors.
 type Error struct {
 	msg    string

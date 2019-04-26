@@ -15,10 +15,10 @@ import (
 )
 
 func ExampleRestoreRaw() {
-	err := errors.NewWithFields("1", map[string]interface{}{
+	err := errors.NewWithFields("1", errors.Fields{
 		"f1": "v1",
 	})
-	err = errors.WrapWithFields(err, "2", map[string]interface{}{
+	err = errors.WrapWithFields(err, "2", errors.Fields{
 		"f2": "v2",
 	})
 
@@ -75,7 +75,7 @@ func TestJsonStack(t *testing.T) {
 				err: func() error {
 					err := errors.New("1")
 					err = errors.Wrap(err, "2")
-					err = errors.WrapWithFields(err, "3", map[string]interface{}{
+					err = errors.WrapWithFields(err, "3", errors.Fields{
 						"f1": "v1",
 					})
 
@@ -88,10 +88,10 @@ func TestJsonStack(t *testing.T) {
 			name: "Stack_OnlyPackageError_StartWithFields",
 			args: args{
 				err: func() error {
-					err := errors.NewWithFields("1", map[string]interface{}{
+					err := errors.NewWithFields("1", errors.Fields{
 						"f1": "v1",
 					})
-					err = errors.WrapWithFields(err, "2", map[string]interface{}{
+					err = errors.WrapWithFields(err, "2", errors.Fields{
 						"f1": "v1",
 					})
 					err = errors.Wrap(err, "3")
@@ -107,7 +107,7 @@ func TestJsonStack(t *testing.T) {
 				err: func() error {
 					err := builtin.New("1")
 					err = errors.Wrap(err, "2")
-					err = errors.WrapWithFields(err, "3", map[string]interface{}{
+					err = errors.WrapWithFields(err, "3", errors.Fields{
 						"f1": "v1",
 					})
 
@@ -123,7 +123,7 @@ func TestJsonStack(t *testing.T) {
 					var err error
 					err = nil
 					err = errors.Wrap(err, "2")
-					err = errors.WrapWithFields(err, "3", map[string]interface{}{
+					err = errors.WrapWithFields(err, "3", errors.Fields{
 						"f1": "v1",
 					})
 
@@ -156,10 +156,10 @@ func TestRestore(t *testing.T) {
 			return make([]map[string]interface{}, 0)
 		}(),
 		fullStack: func() []map[string]interface{} {
-			err := errors.NewWithFields("1", map[string]interface{}{
+			err := errors.NewWithFields("1", errors.Fields{
 				"f1": "v1",
 			})
-			err = errors.WrapWithFields(err, "2", map[string]interface{}{
+			err = errors.WrapWithFields(err, "2", errors.Fields{
 				"f1": "v1",
 			})
 
@@ -167,7 +167,7 @@ func TestRestore(t *testing.T) {
 		}(),
 		fullStackStartedFromBuiltin: func() []map[string]interface{} {
 			err := builtin.New("1")
-			err = errors.WrapWithFields(err, "2", map[string]interface{}{
+			err = errors.WrapWithFields(err, "2", errors.Fields{
 				"f1": "v1",
 			})
 
@@ -231,10 +231,10 @@ func TestRestoreRaw(t *testing.T) {
 			return []byte("[]")
 		}(),
 		fullStack: func() []byte {
-			err := errors.NewWithFields("1", map[string]interface{}{
+			err := errors.NewWithFields("1", errors.Fields{
 				"f1": "v1",
 			})
-			err = errors.WrapWithFields(err, "2", map[string]interface{}{
+			err = errors.WrapWithFields(err, "2", errors.Fields{
 				"f1": "v1",
 			})
 
@@ -242,7 +242,7 @@ func TestRestoreRaw(t *testing.T) {
 		}(),
 		fullStackStartedFromBuiltin: func() []byte {
 			err := builtin.New("1")
-			err = errors.WrapWithFields(err, "2", map[string]interface{}{
+			err = errors.WrapWithFields(err, "2", errors.Fields{
 				"f1": "v1",
 			})
 
