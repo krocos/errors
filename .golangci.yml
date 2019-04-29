@@ -1,0 +1,41 @@
+run:
+  deadline: 1m
+  issues-exit-code: 1
+  tests: true
+
+linters-settings:
+  gocyclo:
+    min-complexity: 5
+  misspell:
+    locale: US
+    ignore-words:
+  lll:
+    line-length: 120
+    tab-width: 8
+
+linters:
+  enable:
+    - depguard
+    - dupl
+    - gochecknoglobals
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - gosec
+    - interfacer
+    - lll
+    - maligned
+    - misspell
+    - nakedret
+    - prealloc
+    - scopelint
+    - stylecheck
+    - unconvert
+    - unparam
+  enable-all: false
+  dissable-all: false
+  fast: false

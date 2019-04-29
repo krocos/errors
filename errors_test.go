@@ -22,7 +22,7 @@ func ExampleRestoreRaw() {
 		"f2": "v2",
 	})
 
-	b := errors.JsonStack(err)
+	b := errors.JSONStack(err)
 	fmt.Println(string(b))
 
 	// Restore error from a []byte (json) stack.
@@ -54,12 +54,12 @@ func BenchmarkJsonStack_Builtin(b *testing.B) {
 	err := builtin.New("error")
 
 	for i := 0; i < b.N; i++ {
-		_ = errors.JsonStack(err)
+		_ = errors.JSONStack(err)
 	}
 }
 
 func TestJsonStack(t *testing.T) {
-	readJson := createJsonReader(t, "testdata")
+	readJSON := createJSONReader(t, "testdata")
 
 	type args struct {
 		err error
@@ -82,7 +82,7 @@ func TestJsonStack(t *testing.T) {
 					return err
 				}(),
 			},
-			want: readJson("Stack_OnlyPackageError_Simple.json"),
+			want: readJSON("Stack_OnlyPackageError_Simple.json"),
 		},
 		{
 			name: "Stack_OnlyPackageError_StartWithFields",
@@ -99,7 +99,7 @@ func TestJsonStack(t *testing.T) {
 					return err
 				}(),
 			},
-			want: readJson("Stack_OnlyPackageError_StartWithFields.json"),
+			want: readJSON("Stack_OnlyPackageError_StartWithFields.json"),
 		},
 		{
 			name: "Stack_BuiltinErrors",
@@ -114,14 +114,13 @@ func TestJsonStack(t *testing.T) {
 					return err
 				}(),
 			},
-			want: readJson("Stack_BuiltinErrors.json"),
+			want: readJSON("Stack_BuiltinErrors.json"),
 		},
 		{
 			name: "Stack_NilError",
 			args: args{
 				err: func() error {
 					var err error
-					err = nil
 					err = errors.Wrap(err, "2")
 					err = errors.WrapWithFields(err, "3", errors.Fields{
 						"f1": "v1",
@@ -130,13 +129,14 @@ func TestJsonStack(t *testing.T) {
 					return err
 				}(),
 			},
-			want: readJson("Stack_NilError.json"),
+			want: readJSON("Stack_NilError.json"),
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := errors.JsonStack(tt.args.err); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("JsonStack() = %v, want %v", got, tt.want)
+		tc := tt
+		t.Run(tc.name, func(t *testing.T) {
+			if got := errors.JSONStack(tc.args.err); !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("JSONStack() = %v, want %v", got, tc.want)
 			}
 		})
 	}
@@ -206,12 +206,13 @@ func TestRestore(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := errors.Restore(tt.args.stack)
+		tc := tt
+		t.Run(tc.name, func(t *testing.T) {
+			err := errors.Restore(tc.args.stack)
 			got := errors.Stack(err)
 
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Restore() = %v, want: %v", got, tt.want)
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("Restore() = %v, want: %v", got, tc.want)
 			}
 		})
 	}
@@ -238,7 +239,7 @@ func TestRestoreRaw(t *testing.T) {
 				"f1": "v1",
 			})
 
-			return errors.JsonStack(err)
+			return errors.JSONStack(err)
 		}(),
 		fullStackStartedFromBuiltin: func() []byte {
 			err := builtin.New("1")
@@ -246,7 +247,7 @@ func TestRestoreRaw(t *testing.T) {
 				"f1": "v1",
 			})
 
-			return errors.JsonStack(err)
+			return errors.JSONStack(err)
 		}(),
 	}
 
@@ -281,18 +282,19 @@ func TestRestoreRaw(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := errors.RestoreRaw(tt.args.stack)
-			got := errors.JsonStack(err)
+		tc := tt
+		t.Run(tc.name, func(t *testing.T) {
+			err := errors.RestoreRaw(tc.args.stack)
+			got := errors.JSONStack(err)
 
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RestoreRaw() = %s, want: %v", string(got), string(tt.want))
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("RestoreRaw() = %s, want: %v", string(got), string(tc.want))
 			}
 		})
 	}
 }
 
-func createJsonReader(t *testing.T, dirname string) func(filename string) []byte {
+func createJSONReader(t *testing.T, dirname string) func(filename string) []byte {
 	t.Helper()
 
 	return func(filename string) []byte {

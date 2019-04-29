@@ -54,8 +54,8 @@ func Stack(err error) []map[string]interface{} {
 	return stack(err, make([]map[string]interface{}, 0))
 }
 
-// JsonStack returns a json-encoded stack of errors.
-func JsonStack(err error) []byte {
+// JSONStack returns a json-encoded stack of errors.
+func JSONStack(err error) []byte {
 	b, _ := json.Marshal(Stack(err))
 	return b
 }
@@ -67,19 +67,7 @@ func Restore(stack []map[string]interface{}) error {
 
 	for i := len(stack) - 1; i >= 0; i-- {
 
-		e := &Error{}
-
-		if msg, ok := stack[i][message]; ok {
-			if s, ok := msg.(string); ok {
-				e.msg = s
-			}
-		}
-
-		if fields, ok := stack[i][fields]; ok {
-			if f, ok := fields.(map[string]interface{}); ok {
-				e.fields = f
-			}
-		}
+		e := restoreErrorFromStackItem(stack[i])
 
 		if err != nil {
 			e.prev = err
@@ -91,7 +79,25 @@ func Restore(stack []map[string]interface{}) error {
 	return err
 }
 
-// RestoreRaw restores an error from a result returned by JsonStack func.
+func restoreErrorFromStackItem(stackItem map[string]interface{}) *Error {
+	err := &Error{}
+
+	if msg, ok := stackItem[message]; ok {
+		if s, ok := msg.(string); ok {
+			err.msg = s
+		}
+	}
+
+	if fields, ok := stackItem[fields]; ok {
+		if f, ok := fields.(map[string]interface{}); ok {
+			err.fields = f
+		}
+	}
+
+	return err
+}
+
+// RestoreRaw restores an error from a result returned by JSONStack func.
 func RestoreRaw(stack []byte) error {
 	s := make([]map[string]interface{}, 0)
 	_ = json.Unmarshal(stack, &s)
@@ -103,15 +109,11 @@ func stack(err error, s []map[string]interface{}) []map[string]interface{} {
 		return s
 	}
 
-	item := make(map[string]interface{})
+	var item map[string]interface{}
 
 	switch e := err.(type) {
 	case *Error:
-		item[message] = e.msg
-
-		if e.fields != nil && len(e.fields) > 0 {
-			item[fields] = e.fields
-		}
+		item = createStackItemFromError(e)
 
 		s = append(s, item)
 
@@ -119,9 +121,21 @@ func stack(err error, s []map[string]interface{}) []map[string]interface{} {
 			s = stack(e.prev, s)
 		}
 	default:
+		item = make(map[string]interface{})
 		item[message] = e.Error()
 		s = append(s, item)
 	}
 
 	return s
+}
+
+func createStackItemFromError(err *Error) map[string]interface{} {
+	item := make(map[string]interface{})
+	item[message] = err.msg
+
+	if err.fields != nil && len(err.fields) > 0 {
+		item[fields] = err.fields
+	}
+
+	return item
 }
