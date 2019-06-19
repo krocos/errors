@@ -1,6 +1,9 @@
 package errors
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 const (
 	message = "message"
@@ -18,7 +21,21 @@ type Error struct {
 }
 
 func (err Error) Error() string {
-	return err.msg
+	stack := messagesStack(&err, make([]string, 0))
+	return strings.Join(stack, ": ")
+}
+
+func messagesStack(e error, s []string) []string {
+	if err, ok := e.(*Error); ok {
+		s = append(s, err.msg)
+		if err.prev != nil {
+			s = messagesStack(err.prev, s)
+		}
+	} else {
+		s = append(s, e.Error())
+	}
+
+	return s
 }
 
 // New creates new error.

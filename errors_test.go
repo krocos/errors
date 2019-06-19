@@ -33,7 +33,7 @@ func ExampleRestoreRaw() {
 
 	// output:
 	// [{"fields":{"f2":"v2"},"message":"2"},{"fields":{"f1":"v1"},"message":"1"}]
-	// 2
+	// 2: 1
 }
 
 func BenchmarkStack_Builtin(b *testing.B) {
@@ -55,6 +55,28 @@ func BenchmarkJsonStack_Builtin(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		_ = errors.JSONStack(err)
+	}
+}
+
+func TestError_Error_JoinsMessagesCorrectly(t *testing.T) {
+	fields := errors.Fields{
+		"f1": "v1",
+		"f2": "v2",
+	}
+
+	err := errors.NewWithFields("first message", fields)
+	err = errors.Wrap(err, "second msg")
+	err = errors.WrapWithFields(err, "third message", fields)
+
+	if err == nil {
+		t.Fatalf("err must not be nil")
+	}
+
+	want := "third message: second msg: first message"
+	got := err.Error()
+
+	if want != got {
+		t.Fatalf("want the string `%s`, got `%s`", want, got)
 	}
 }
 
