@@ -1,7 +1,10 @@
+// Package errors provides functions and types for effective work with errors,
+// the wraps, and stack traces.
 package errors
 
 import (
 	"encoding/json"
+	builtin "errors"
 	"strings"
 )
 
@@ -10,7 +13,8 @@ const (
 	fields  = "fields"
 )
 
-// Fields represents just an alias for a more complicated on reading map[string]interface{}.
+// Fields represents just an alias for a more complicated on reading
+// map[string]interface{}.
 type Fields map[string]interface{}
 
 // Error contains current and previous possible errors.
@@ -18,6 +22,24 @@ type Error struct {
 	msg    string
 	fields map[string]interface{}
 	prev   error
+}
+
+// Unwrap returns previous error.
+func (err *Error) Unwrap() error {
+	return err.prev
+}
+
+// Is reports whether any error in err's chain matches target.
+// (Doc copied from builtin func.)
+func Is(err, target error) bool {
+	return builtin.Is(err, target)
+}
+
+// As finds the first error in err's chain that matches target, and if so, sets
+// target to that error value and returns true.
+// (Doc copied from builtin func.)
+func As(err error, target interface{}) bool {
+	return builtin.As(err, target)
 }
 
 func (err Error) Error() string {
@@ -57,7 +79,8 @@ func Wrap(err error, msg string) error {
 	return &Error{msg: msg, prev: err}
 }
 
-// WrapWithFields wraps previous error into a new one with explanatory message and with contextual fields.
+// WrapWithFields wraps previous error into a new one with explanatory message
+// and with contextual fields.
 func WrapWithFields(err error, msg string, fields map[string]interface{}) error {
 	if err == nil {
 		return nil
@@ -94,6 +117,13 @@ func Restore(stack []map[string]interface{}) error {
 	}
 
 	return err
+}
+
+// Unwrap returns previous error if err's type contains an Unwrap method
+// returning error, otherwise, Unwrap returns nil.
+// (Doc copied from builtin function.)
+func Unwrap(err error) error {
+	return builtin.Unwrap(err)
 }
 
 func restoreErrorFromStackItem(stackItem map[string]interface{}) *Error {
