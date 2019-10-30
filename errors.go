@@ -24,27 +24,25 @@ type Error struct {
 	prev   error
 }
 
+func (err Error) Error() string {
+	stack := messagesStack(&err, make([]string, 0))
+	return strings.Join(stack, ": ")
+}
+
 // Unwrap returns previous error.
 func (err *Error) Unwrap() error {
 	return err.prev
 }
 
 // Is reports whether any error in err's chain matches target.
-// (Doc copied from builtin func.)
 func Is(err, target error) bool {
 	return builtin.Is(err, target)
 }
 
 // As finds the first error in err's chain that matches target, and if so, sets
 // target to that error value and returns true.
-// (Doc copied from builtin func.)
 func As(err error, target interface{}) bool {
 	return builtin.As(err, target)
-}
-
-func (err Error) Error() string {
-	stack := messagesStack(&err, make([]string, 0))
-	return strings.Join(stack, ": ")
 }
 
 func messagesStack(e error, s []string) []string {
@@ -161,16 +159,15 @@ func stack(err error, s []map[string]interface{}) []map[string]interface{} {
 	switch e := err.(type) {
 	case *Error:
 		item = createStackItemFromError(e)
-
 		s = append(s, item)
 
-		if e.prev != nil {
-			s = stack(e.prev, s)
-		}
+		s = stack(e.prev, s)
 	default:
 		item = make(map[string]interface{})
 		item[message] = e.Error()
 		s = append(s, item)
+
+		s = stack(builtin.Unwrap(e), s)
 	}
 
 	return s
