@@ -89,7 +89,7 @@ func TestJsonStack(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []byte
+		want json.RawMessage
 	}{
 		{
 			name: "Stack_OnlyPackageError_Simple",
@@ -249,11 +249,11 @@ func TestRestoreRaw(t *testing.T) {
 	)
 
 	// []byte is a raw stack.
-	stacks := map[string][]byte{
-		emptyStack: func() []byte {
+	stacks := map[string]json.RawMessage{
+		emptyStack: func() json.RawMessage {
 			return []byte("[]")
 		}(),
-		fullStack: func() []byte {
+		fullStack: func() json.RawMessage {
 			err := errors.NewWithFields("1", errors.Fields{
 				"f1": "v1",
 			})
@@ -263,7 +263,7 @@ func TestRestoreRaw(t *testing.T) {
 
 			return errors.JSONStack(err)
 		}(),
-		fullStackStartedFromBuiltin: func() []byte {
+		fullStackStartedFromBuiltin: func() json.RawMessage {
 			err := builtin.New("1")
 			err = errors.WrapWithFields(err, "2", errors.Fields{
 				"f1": "v1",
@@ -279,7 +279,7 @@ func TestRestoreRaw(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []byte
+		want json.RawMessage
 	}{
 		{
 			name: emptyStack,
@@ -316,10 +316,10 @@ func TestRestoreRaw(t *testing.T) {
 	}
 }
 
-func createJSONReader(t *testing.T, dirname string) func(filename string) []byte {
+func createJSONReader(t *testing.T, dirname string) func(filename string) json.RawMessage {
 	t.Helper()
 
-	return func(filename string) []byte {
+	return func(filename string) json.RawMessage {
 		t.Helper()
 
 		p := path.Join(dirname, filename)

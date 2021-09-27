@@ -93,7 +93,7 @@ func Stack(err error) []map[string]interface{} {
 }
 
 // JSONStack returns a json-encoded stack of errors.
-func JSONStack(err error) []byte {
+func JSONStack(err error) json.RawMessage {
 	b, _ := json.Marshal(Stack(err))
 	return b
 }
